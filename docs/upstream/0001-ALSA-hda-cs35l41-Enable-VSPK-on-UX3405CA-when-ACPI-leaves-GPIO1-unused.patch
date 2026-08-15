@@ -1,0 +1,47 @@
+From c325bb06bb37fd658f0250dc8571b5bb6b2c7dbf Mon Sep 17 00:00:00 2001
+From: Gemayel Lira <gemayellira@gmail.com>
+Date: Sat, 15 Aug 2026 17:16:18 -0300
+Subject: [PATCH] ALSA: hda: cs35l41: Enable VSPK on UX3405CA when ACPI leaves
+ GPIO1 unused
+
+The ASUS Zenbook 14 UX3405CA (SSID 1043:1A63) already has a valid _DSD
+and uses missing_speaker_id_gpio2. ACPI sets cirrus,gpio1-func to VSPK
+on the left amplifier and unused on the right, so the right channel
+binds with VSPK: 0 and volume drops shortly after playback starts.
+
+After parsing ACPI, enable VSPK on GPIO1 when it was left unused.
+
+Signed-off-by: Gemayel Lira <gemayellira@gmail.com>
+---
+ .../hda/codecs/side-codecs/cs35l41_hda_property.c | 15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
+
+diff --git a/sound/hda/codecs/side-codecs/cs35l41_hda_property.c b/sound/hda/codecs/side-codecs/cs35l41_hda_property.c
+index 416d7bf..0c09094 100644
+--- a/sound/hda/codecs/side-codecs/cs35l41_hda_property.c
++++ b/sound/hda/codecs/side-codecs/cs35l41_hda_property.c
+@@ -450,7 +450,20 @@ static int missing_speaker_id_gpio2(struct cs35l41_hda *cs35l41, struct device *
+ 		return ret;
+ 	}
+ 
+-	return cs35l41_hda_parse_acpi(cs35l41, physdev, id);
++	ret = cs35l41_hda_parse_acpi(cs35l41, physdev, id);
++	if (ret)
++		return ret;
++
++	/*
++	 * ACPI on 10431A63 sets gpio1 to VSPK on the left amp and unused
++	 * on the right, so the right channel binds with VSPK: 0.
++	 */
++	if (cs35l41->hw_cfg.gpio1.func == CS35L41_NOT_USED) {
++		cs35l41->hw_cfg.gpio1.func = CS35l41_VSPK_SWITCH;
++		cs35l41->hw_cfg.gpio1.valid = true;
++	}
++
++	return 0;
+ }
+ 
+ struct cs35l41_prop_model {
+-- 
+2.53.0
+

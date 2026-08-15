@@ -1,0 +1,17 @@
+# kbuild out-of-tree leftovers
+*.o
+*.ko
+*.mod
+*.mod.c
+*.mod.o
+Module.symvers
+modules.order
+.*.cmd
+..*.cmd
+.module-common.o
+.tmp_versions/
+
+# Local only
+/check-after-reboot.sh
+/docs/acpi-spkramps.md
+/docs/upstream/SENDING.md
