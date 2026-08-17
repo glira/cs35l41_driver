@@ -8,6 +8,10 @@ Upstream change: [docs/upstream/0001-ALSA-hda-cs35l41-Enable-VSPK-on-UX3405CA-wh
 (`cs35l41_hda_property.c`, `missing_speaker_id_gpio2`). Cover:
 [docs/upstream/COVER.txt](docs/upstream/COVER.txt).
 
+Cirrus asked for a public ticket after `[PATCH v2]`:
+[bug 221896](https://bugzilla.kernel.org/show_bug.cgi?id=221896)
+(ACPI dump, stock dmesg with `VSPK: 0` on the right amp). Not merged yet.
+
 The `module/` tree is a tested out-of-tree workaround (VSPK quirk plus
 local gain/resume extras). It is not the mailing-list patch.
 
