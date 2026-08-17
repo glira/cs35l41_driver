@@ -1,7 +1,7 @@
 From c325bb06bb37fd658f0250dc8571b5bb6b2c7dbf Mon Sep 17 00:00:00 2001
 From: Gemayel Lira <gemayellira@gmail.com>
 Date: Sat, 15 Aug 2026 17:16:18 -0300
-Subject: [PATCH] ALSA: hda: cs35l41: Enable VSPK on UX3405CA when ACPI leaves
+Subject: [PATCH v2] ALSA: hda: cs35l41: Enable VSPK on UX3405CA when ACPI leaves
  GPIO1 unused
 
 The ASUS Zenbook 14 UX3405CA (SSID 1043:1A63) already has a valid _DSD
@@ -13,6 +13,18 @@ After parsing ACPI, enable VSPK on GPIO1 when it was left unused.
 
 Signed-off-by: Gemayel Lira <gemayellira@gmail.com>
 ---
+Changes in v2:
+- Do not map 10431A63 to generic_dsd_config / INTERNAL boost. Stefan
+  Binding rejected v1: this laptop is external boost, and that override
+  can damage the amplifiers.
+- Keep missing_speaker_id_gpio2 and enable VSPK only when ACPI left
+  GPIO1 unused. Boost type is unchanged.
+- v1 loaded fallback firmware (SPKID: -19) and, after some S3 resumes,
+  hit PM -110 then SPI -16 (EBUSY) on the right amp. This v2 binds
+  SPKID: 1 and official spk-prot-10431a63 firmware.
+
+v1: Message-ID: <CAD96ZT+SnRnGr4Xd+NJkkVNpj8XrzL3Ete=pRgz05mqxAzbU2w@mail.gmail.com>
+
  .../hda/codecs/side-codecs/cs35l41_hda_property.c | 15 ++++++++++++++-
  1 file changed, 14 insertions(+), 1 deletion(-)
 

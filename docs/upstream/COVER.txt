@@ -1,21 +1,21 @@
-The ASUS Zenbook 14 UX3405CA (SSID 1043:1A63) already has a valid ACPI
-_DSD and is mapped to missing_speaker_id_gpio2. Two amps, external
-boost, shared reset GPIO, gpio2 = IRQ.
+v1 mapped 10431A63 to generic_dsd_config and INTERNAL boost. Stefan Binding
+rejected that: this laptop is external boost, and overriding the ACPI _DSD
+as internal can damage the amplifiers. Takashi agreed not to take v1.
 
-ACPI sets cirrus,gpio1-func to VSPK (1) on the left amplifier and
-unused (0) on the right. The right channel therefore binds with
-VSPK: 0 and volume drops about one second after playback starts.
+v1 also loaded fallback firmware (SPKID: -19). After some S3 resumes the
+right amp failed with PM resume -110, then SPI -16 (EBUSY) until reboot.
 
-This patch keeps Binding's parse of the existing _DSD (including the
-speaker-id GPIO added at CRS index 2) and enables VSPK on GPIO1 only
-when ACPI left it unused.
-
-generic_dsd_config must not be used here: it ignores the _DSD and
-loads fallback firmware (SPKID: -19).
+This v2 keeps Binding's missing_speaker_id_gpio2 parse of the existing
+_DSD (external boost, shared reset, gpio2 = IRQ, speaker-id at CRS index
+2). ACPI sets cirrus,gpio1-func to VSPK (1) on the left amp and unused (0)
+on the right, so the right channel binds with VSPK: 0 and volume drops
+about one second after playback. After parse_acpi, enable VSPK on GPIO1
+only when ACPI left it unused. Boost type is unchanged.
 
 Tested: ASUS Zenbook 14 UX3405CA, Ubuntu kernel 7.0.0-27-generic.
 Both amps: VSPK: 1, SPKID: 1, firmware
-spk-prot-10431a63-spkid1-{l,r}0.bin.
+spk-prot-10431a63-spkid1-{l,r}0.bin. One S3 (deep): both amps reloaded
+firmware, no -110/-16.
 
 ACPI _DSD (SSDT SPKRAMPS), excerpt:
 
@@ -25,7 +25,9 @@ ACPI _DSD (SSDT SPKRAMPS), excerpt:
   reset-gpios:        shared CRS index 1
   spk-id-gpios:       missing (CRS index 2)
 
-dmesg after the quirk:
+dmesg after this quirk:
 
   CS35L41 Bound - SSID: 10431A63, BST: 1, VSPK: 1, CH: L, FW EN: 1, SPKID: 1
   CS35L41 Bound - SSID: 10431A63, BST: 1, VSPK: 1, CH: R, FW EN: 1, SPKID: 1
+
+v1: https://lore.kernel.org/linux-sound/CAD96ZT+SnRnGr4Xd+NJkkVNpj8XrzL3Ete=pRgz05mqxAzbU2w@mail.gmail.com/
